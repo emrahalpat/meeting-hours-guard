@@ -10,7 +10,7 @@
            xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
            xsi:type="MailApp">
   <Id>05aa173c-b018-4229-b1c2-a3706708b386</Id>
-  <Version>1.0.0.0</Version>
+  <Version>1.0.3.0</Version>
   <ProviderName>Internal IT</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Meeting Hours Guard"/>
@@ -32,7 +32,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://localhost:3000/commands.html"/>
+        <SourceLocation DefaultValue="https://localhost:3000/commands.html?v=3"/>
         <RequestedHeight>250</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -105,8 +105,8 @@
           <bt:Image id="Icon.80x80" DefaultValue="https://localhost:3000/assets/icon-80.png"/>
         </bt:Images>
         <bt:Urls>
-          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://localhost:3000/commands.html"/>
-          <bt:Url id="JSRuntime.Url" DefaultValue="https://localhost:3000/commands.js"/>
+          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://localhost:3000/commands.html?v=3"/>
+          <bt:Url id="JSRuntime.Url" DefaultValue="https://localhost:3000/commands.js?v=3"/>
         </bt:Urls>
         <bt:ShortStrings>
           <bt:String id="GroupLabel" DefaultValue="Meeting Hours"/>
