@@ -22,4 +22,5 @@ manifest = manifest
   .replace("<AppDomain>https://localhost:3000</AppDomain>", `<AppDomain>${origin}</AppDomain>`)
   .replaceAll("https://localhost:3000", base);
 fs.writeFileSync(path.join(__dirname, "manifest.prod.xml"), manifest);
+fs.writeFileSync(path.join(out, "manifest.xml"), manifest);
 console.log(`docs/ built; manifest.prod.xml points at ${base}`);
