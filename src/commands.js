@@ -51,12 +51,25 @@ function checkTimes(start, end) {
 
 /* ---------- Office glue (skipped when run under Node for tests) ---------- */
 
-function getAsyncP(prop) {
+function log(...args) {
+  console.log("[MHG]", ...args);
+}
+log("commands.js loaded", new Date().toISOString());
+
+/* getAsync as a promise, with a timeout so a silent host never hangs the handler. */
+function getAsyncP(prop, name, ms = 4000) {
   return new Promise((resolve, reject) => {
-    prop.getAsync((r) => {
-      if (r.status === Office.AsyncResultStatus.Succeeded) resolve(r.value);
-      else reject(r.error);
-    });
+    const timer = setTimeout(() => reject(new Error(`${name}.getAsync timed out`)), ms);
+    try {
+      prop.getAsync((r) => {
+        clearTimeout(timer);
+        if (r.status === Office.AsyncResultStatus.Succeeded) resolve(r.value);
+        else reject(r.error || new Error(`${name}.getAsync failed`));
+      });
+    } catch (e) {
+      clearTimeout(timer);
+      reject(e);
+    }
   });
 }
 
@@ -64,17 +77,21 @@ function callAsyncP(fn) {
   return new Promise((resolve) => fn((r) => resolve(r)));
 }
 
+/* Reads one property at a time (sequential, so a stuck call is easy to spot in the log). */
 async function evaluate(item) {
-  const [start, end, allDay, required, optional] = await Promise.all([
-    getAsyncP(item.start),
-    getAsyncP(item.end),
-    item.isAllDayEvent ? getAsyncP(item.isAllDayEvent).catch(() => false) : false,
-    getAsyncP(item.requiredAttendees).catch(() => []),
-    getAsyncP(item.optionalAttendees).catch(() => []),
-  ]);
+  const start = await getAsyncP(item.start, "start");
+  const end = await getAsyncP(item.end, "end");
+  log("times", start && start.toISOString(), end && end.toISOString());
+  let allDay = false;
+  if (item.isAllDayEvent) allDay = await getAsyncP(item.isAllDayEvent, "isAllDayEvent").catch(() => false);
+  const required = await getAsyncP(item.requiredAttendees, "requiredAttendees").catch(() => []);
+  const optional = await getAsyncP(item.optionalAttendees, "optionalAttendees").catch(() => []);
+  log("allDay", allDay, "attendees", required.length + optional.length);
   if (allDay) return null;                                  // all-day events are out of scope
   if (required.length + optional.length === 0) return null; // personal appointment, no invite
-  return checkTimes(start, end);
+  const reason = checkTimes(start, end);
+  log("reason", reason);
+  return reason;
 }
 
 function showNotice(item, message) {
@@ -98,6 +115,7 @@ function clearNotice(item) {
 
 /* OnNewAppointmentOrganizer, OnAppointmentTimeChanged, OnAppointmentAttendeesChanged */
 async function onAppointmentChangedHandler(event) {
+  log("changed handler", event && event.type);
   const item = Office.context.mailbox.item;
   try {
     const reason = await evaluate(item);
@@ -114,6 +132,7 @@ async function onAppointmentChangedHandler(event) {
 
 /* OnAppointmentSend (Smart Alerts) */
 async function onAppointmentSendHandler(event) {
+  log("send handler start");
   try {
     const reason = await evaluate(Office.context.mailbox.item);
     if (!reason) {
@@ -134,6 +153,7 @@ async function onAppointmentSendHandler(event) {
 
 /* Ribbon button "Check hours" */
 async function checkMeetingHours(event) {
+  log("button handler");
   const item = Office.context.mailbox.item;
   try {
     const reason = await evaluate(item);
