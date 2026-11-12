@@ -169,10 +169,32 @@ async function checkMeetingHours(event) {
   event.completed();
 }
 
-if (typeof Office !== "undefined" && Office.actions) {
+/* Map manifest FunctionName values to handlers. Register at load time (as Microsoft's samples do)
+   and again once Office is ready, in case Office.actions isn't available yet when this script runs. */
+let associated = false;
+function register(when) {
+  if (associated) return;
+  if (!(Office.actions && Office.actions.associate)) {
+    log("Office.actions not available", when);
+    return;
+  }
   Office.actions.associate("onAppointmentChangedHandler", onAppointmentChangedHandler);
   Office.actions.associate("onAppointmentSendHandler", onAppointmentSendHandler);
   Office.actions.associate("checkMeetingHours", checkMeetingHours);
+  associated = true;
+  log("handlers associated", when);
+}
+
+if (typeof Office !== "undefined") {
+  try {
+    register("at load");
+  } catch (e) {
+    log("associate at load failed", e && e.message);
+  }
+  Office.onReady((info) => {
+    log("Office ready", info && info.host, info && info.platform);
+    register("on ready");
+  });
 }
 
 if (typeof module !== "undefined") {
