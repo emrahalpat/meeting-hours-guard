@@ -1,0 +1,14 @@
+{
+  "name": "meeting-hours-guard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Outlook Smart Alerts add-in: warns organizers about meetings outside company meeting hours.",
+  "scripts": {
+    "certs": "npx --yes office-addin-dev-certs install",
+    "start": "node server.js",
+    "test": "node test.js",
+    "validate": "npx --yes office-addin-manifest validate manifest.xml",
+    "build": "node build.js https://emrahalpat.github.io/meeting-hours-guard",
+    "validate:prod": "npx --yes office-addin-manifest validate manifest.prod.xml"
+  }
+}
