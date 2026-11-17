@@ -10,6 +10,32 @@ const POLICY = {
   start: 1000,                           // HHmm, earliest allowed start
   end: 1830,                             // HHmm, latest allowed end
   label: "Mon to Fri, 10:00 to 18:30 Istanbul time",
+
+  // Public holidays: no meetings all day. Dates are YYYY-MM-DD in timeZone.
+  // Add next year's list every December (religious holiday dates move each year).
+  holidays: {
+    "2027-01-01": "New Year's Day",
+    "2027-03-10": "Ramadan Feast",
+    "2027-03-11": "Ramadan Feast",
+    "2027-03-12": "Ramadan Feast",
+    "2027-04-23": "National Sovereignty and Children's Day",
+    "2027-05-01": "Labor and Solidarity Day",
+    "2027-05-16": "Sacrifice Feast",
+    "2027-05-17": "Sacrifice Feast",
+    "2027-05-18": "Sacrifice Feast",
+    "2027-05-19": "Youth and Sports Day, Sacrifice Feast",
+    "2027-07-15": "Democracy and National Unity Day",
+    "2027-08-30": "Victory Day",
+    "2027-10-29": "Republic Day",
+  },
+
+  // Half days (holiday eves): meetings must end by halfDayEnd.
+  halfDayEnd: 1300,
+  halfDays: {
+    "2027-03-09": "Ramadan Feast Eve",
+    "2027-05-15": "Sacrifice Feast Eve",
+    "2027-10-28": "Republic Day Eve",
+  },
 };
 
 const NOTICE_KEY = "meetingHoursGuard";
@@ -43,10 +69,22 @@ function fmt(hhmm) {
 function checkTimes(start, end) {
   const s = localParts(start);
   const e = localParts(end);
+  const holidays = POLICY.holidays || {};
+  const halfDays = POLICY.halfDays || {};
   if (!POLICY.days.includes(s.day)) return "falls on a weekend";
+  if (holidays[s.date]) return `falls on a public holiday (${holidays[s.date]})`;
   if (s.hhmm < POLICY.start) return `starts before ${fmt(POLICY.start)}`;
+  if (halfDays[s.date] && (s.date !== e.date || e.hhmm > POLICY.halfDayEnd)) {
+    return `ends after ${fmt(POLICY.halfDayEnd)} on a half day (${halfDays[s.date]})`;
+  }
   if (s.date !== e.date || e.hhmm > POLICY.end) return `ends after ${fmt(POLICY.end)}`;
   return null;
+}
+
+/* Logs a reminder when a meeting's year has no holiday list yet. */
+function holidayYearCovered(date) {
+  const year = localParts(date).date.slice(0, 4);
+  return Object.keys(POLICY.holidays || {}).some((d) => d.startsWith(year));
 }
 
 /* ---------- Office glue (skipped when run under Node for tests) ---------- */
@@ -89,9 +127,17 @@ async function evaluate(item) {
   log("allDay", allDay, "attendees", required.length + optional.length);
   if (allDay) return null;                                  // all-day events are out of scope
   if (required.length + optional.length === 0) return null; // personal appointment, no invite
+  if (!holidayYearCovered(start)) log("no public holiday list for this year: update POLICY.holidays");
   const reason = checkTimes(start, end);
   log("reason", reason);
   return reason;
+}
+
+/* Info-bar text (Outlook caps it at 150 characters): drops the hours line when the reason is long. */
+function noticeText(reason) {
+  const head = `Outside meeting hours: this meeting ${reason}.`;
+  const full = `${head} Meeting hours are ${POLICY.label}.`;
+  return full.length <= 150 ? full : head;
 }
 
 function showNotice(item, message) {
@@ -120,7 +166,7 @@ async function onAppointmentChangedHandler(event) {
   try {
     const reason = await evaluate(item);
     if (reason) {
-      await showNotice(item, `Outside meeting hours: this meeting ${reason}. Meeting hours are ${POLICY.label}.`);
+      await showNotice(item, noticeText(reason));
     } else {
       await clearNotice(item);
     }
@@ -160,7 +206,7 @@ async function checkMeetingHours(event) {
     await showNotice(
       item,
       reason
-        ? `Outside meeting hours: this meeting ${reason}. Meeting hours are ${POLICY.label}.`
+        ? noticeText(reason)
         : `Within meeting hours (${POLICY.label}).`
     );
   } catch (e) {
@@ -198,5 +244,5 @@ if (typeof Office !== "undefined") {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { POLICY, checkTimes, localParts };
+  module.exports = { POLICY, checkTimes, localParts, holidayYearCovered, noticeText };
 }

@@ -1,5 +1,5 @@
-// Builds the GitHub Pages site (docs/) and the production manifest (manifest.prod.xml).
-// Usage: node build.js https://<user>.github.io/<repo>
+// Builds the hosted files and the production manifest (manifest.prod.xml).
+// Usage: node build.js https://<your-host>/<path> [outputFolder]   (output folder defaults to docs/)
 const fs = require("fs");
 const path = require("path");
 
@@ -10,7 +10,7 @@ if (!/^https:\/\//.test(base)) {
 }
 const origin = new URL(base).origin;
 
-const out = path.join(__dirname, "docs");
+const out = path.resolve(__dirname, process.argv[3] || "docs");
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(path.join(out, "assets"), { recursive: true });
 for (const f of fs.readdirSync(path.join(__dirname, "src"))) fs.copyFileSync(path.join(__dirname, "src", f), path.join(out, f));
@@ -23,4 +23,4 @@ manifest = manifest
   .replaceAll("https://localhost:3000", base);
 fs.writeFileSync(path.join(__dirname, "manifest.prod.xml"), manifest);
 fs.writeFileSync(path.join(out, "manifest.xml"), manifest);
-console.log(`docs/ built; manifest.prod.xml points at ${base}`);
+console.log(`${path.relative(__dirname, out) || "."}/ built; manifest.prod.xml points at ${base}`);

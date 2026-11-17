@@ -10,11 +10,11 @@
            xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
            xsi:type="MailApp">
   <Id>05aa173c-b018-4229-b1c2-a3706708b386</Id>
-  <Version>1.0.3.0</Version>
+  <Version>1.0.4.0</Version>
   <ProviderName>Internal IT</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Meeting Hours Guard"/>
-  <Description DefaultValue="Warns organizers when a meeting falls outside company meeting hours (Mon to Fri, 10:00 to 18:30)."/>
+  <Description DefaultValue="Warns organizers when a meeting falls outside company meeting hours (Mon to Fri, 10:00 to 18:30, excluding public holidays)."/>
   <IconUrl DefaultValue="https://localhost:3000/assets/icon-64.png"/>
   <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-128.png"/>
   <SupportUrl DefaultValue="https://localhost:3000/support.html"/>
@@ -32,7 +32,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://localhost:3000/commands.html?v=3"/>
+        <SourceLocation DefaultValue="https://localhost:3000/commands.html?v=4"/>
         <RequestedHeight>250</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -105,15 +105,15 @@
           <bt:Image id="Icon.80x80" DefaultValue="https://localhost:3000/assets/icon-80.png"/>
         </bt:Images>
         <bt:Urls>
-          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://localhost:3000/commands.html?v=3"/>
-          <bt:Url id="JSRuntime.Url" DefaultValue="https://localhost:3000/commands.js?v=3"/>
+          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://localhost:3000/commands.html?v=4"/>
+          <bt:Url id="JSRuntime.Url" DefaultValue="https://localhost:3000/commands.js?v=4"/>
         </bt:Urls>
         <bt:ShortStrings>
           <bt:String id="GroupLabel" DefaultValue="Meeting Hours"/>
           <bt:String id="CheckButton.Label" DefaultValue="Check hours"/>
         </bt:ShortStrings>
         <bt:LongStrings>
-          <bt:String id="CheckButton.Tooltip" DefaultValue="Check this meeting against company meeting hours (Mon to Fri, 10:00 to 18:30)."/>
+          <bt:String id="CheckButton.Tooltip" DefaultValue="Check this meeting against company meeting hours (Mon to Fri, 10:00 to 18:30, excluding public holidays)."/>
         </bt:LongStrings>
       </Resources>
     </VersionOverrides>
